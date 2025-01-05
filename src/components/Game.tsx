@@ -11,6 +11,7 @@ import { Leaderboard } from './Leaderboard';
 import Login from './Login';
 import { soundManager } from '../utils/sounds';
 import { SoundToggle } from './SoundToggle';
+import { trackEvent } from '../utils/analytics';
 
 export function Game() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -54,14 +55,17 @@ export function Game() {
     setFeedback(null);
     setGuess('');
     setTimeLeft(30);
-    setIsTimerActive(false);
-
+    
     try {
       // Set painting to null first to trigger loading state
       setPainting(null);
       const newPainting = await fetchRandomPainting();
       setPainting(newPainting);
       soundManager.playSound('START');
+      trackEvent('load_painting', {
+        artist: newPainting.artist,
+        title: newPainting.title
+      });
       // Increment total paintings in stats
       const currentUser = localStorage.getItem('current-user');
       if (currentUser) {
@@ -97,9 +101,13 @@ export function Game() {
 
   const handleTimeUp = useCallback(() => {
     setIsTimerActive(false);
+    soundManager.stopTickLoop();
     soundManager.playSound('GAMEOVER');
     if (painting) {
-      setFeedback(null); // Clear any existing feedback
+      trackEvent('time_up', {
+        artist: painting.artist,
+        title: painting.title
+      });
       const currentUser = localStorage.getItem('current-user');
       if (currentUser) {
         const user = JSON.parse(currentUser);
@@ -117,6 +125,13 @@ export function Game() {
     
     const isCorrect = guess.toLowerCase() === painting.artist.toLowerCase();
     const currentUser = localStorage.getItem('current-user');
+    
+    trackEvent('make_guess', {
+      correct: isCorrect,
+      artist: painting.artist,
+      timeLeft: timeLeft,
+      guessText: guess.toLowerCase()
+    });
     
     if (currentUser) {
       const user = JSON.parse(currentUser);
@@ -140,11 +155,36 @@ export function Game() {
     }
   };
 
+  const handleLogin = async (userData: { id: string; username: string }) => {
+    try {
+      localStorage.setItem('current-user', JSON.stringify(userData));
+      setIsLoggedIn(true);
+      setUsername(userData.username);
+      
+      trackEvent('user_login', {
+        username: userData.username
+      });
+      
+      const stats = await getUserStats(userData.id);
+      if (stats) {
+        setStats(stats);
+        trackEvent('load_stats', {
+          totalGuesses: stats.totalGuesses,
+          correctGuesses: stats.correctGuesses,
+          score: stats.score
+        });
+      }
+      
+      loadNewPainting(); // Load a new painting when user signs in
+    } catch (error) {
+      console.error('Error logging in:', error);
+    }
+  };
+
   const handleLogout = () => {
     localStorage.removeItem('current-user');
     setIsLoggedIn(false);
     setUsername('');
-    setPainting(null); // Clear the current painting
     setStats({
       totalPaintings: 0,
       totalGuesses: 0,
@@ -153,18 +193,7 @@ export function Game() {
       score: 0,
       rank: 0
     });
-  };
-
-  const handleLogin = (userData: { id: string; username: string }) => {
-    localStorage.setItem('current-user', JSON.stringify(userData));
-    setIsLoggedIn(true);
-    setUsername(userData.username);
-    getUserStats(userData.id).then(userStats => {
-      if (userStats) {
-        setStats(userStats);
-      }
-    });
-    loadNewPainting(); // Load a new painting when user signs in
+    trackEvent('user_logout');
   };
 
   if (!isLoggedIn) {
