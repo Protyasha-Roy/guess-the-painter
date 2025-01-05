@@ -215,9 +215,16 @@ export function Game() {
             <h2 className="text-lg md:text-xl font-black uppercase mb-3 border-b-[3px] border-black pb-2">How to Play</h2>
             <ul className="list-disc pl-4 space-y-1 text-sm">
               <li>You have 30 seconds to guess the painter of each artwork</li>
-              <li>Type your guess in the input field and press Enter</li>
+              <li>Type your guess in the input field and press Enter or Click the 'Guess' button</li>
               <li>Get 10 points for each correct guess</li>
               <li>Wrong guesses don't affect your score</li>
+            </ul>
+            <h2 className="text-lg md:text-xl font-black uppercase mb-3 border-b-[3px] border-black pb-2">Tips</h2>
+            <ul className="list-disc pl-4 space-y-1 text-sm">
+              <li>Most paintings are from old artists</li>
+              <li>Try to guess the artist's full name</li>
+              <li>Spelling must be correct (but not case sensitive)</li>
+              <li>Sometimes it might have short names instead of full form names. So, if you are confident about an artist, and it's saying wrong guess then keep trying with full name, or surname</li>
             </ul>
           </div>
 

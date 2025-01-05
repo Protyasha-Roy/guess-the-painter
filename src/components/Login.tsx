@@ -60,37 +60,31 @@ export default function Login({ onLogin }: LoginProps) {
             Guess The Painter
           </h1>
           <div className="text-white/80">
-            created by <a href="https://protyasharoy.onrender.com" target="_blank" rel="noopener noreferrer" className="font-medium text-[#93FFD8] transition-colors">Protyasha Roy</a>
+            created by <a href="https://protyasharoy.onrender.com" target="_blank" rel="noopener noreferrer" className="font-medium text-orange-500 underline transition-colors">Protyasha Roy</a>
           </div>
         </div>
 
         <div className="backdrop-blur-md bg-white/20 p-8 rounded-lg shadow-2xl">
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label htmlFor="username" className="block text-sm font-medium text-white mb-2">
-                Username
-              </label>
               <input
                 id="username"
                 type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                className="w-full px-4 py-3 bg-white/10 border border-white/30 text-white placeholder-white/50 rounded-lg backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-white/50 transition-all"
+                className="w-full px-2 py-2 bg-white/10 border border-white/30 text-white placeholder-white/50 rounded-lg backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-white/50 transition-all"
                 placeholder="Enter username"
                 disabled={isLoading}
               />
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-white mb-2">
-                Password
-              </label>
               <input
                 id="password"
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-3 bg-white/10 border border-white/30 text-white placeholder-white/50 rounded-lg backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-white/50 transition-all"
+                className="w-full px-2 py-2 bg-white/10 border border-white/30 text-white placeholder-white/50 rounded-lg backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-white/50 transition-all"
                 placeholder="Enter password"
                 disabled={isLoading}
               />
@@ -102,7 +96,7 @@ export default function Login({ onLogin }: LoginProps) {
 
             <button
               type="submit"
-              className="w-full bg-white/10 border border-white/30 backdrop-blur-sm text-white py-3 rounded-lg font-medium hover:bg-white/20 transition-all focus:outline-none focus:ring-2 focus:ring-white/50 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full bg-orange-600/40 border border-white/30 backdrop-blur-sm text-white py-3 rounded-lg font-medium hover:bg-orange-600/50 transition-all focus:outline-none focus:ring-2 focus:ring-white/50 disabled:opacity-50 disabled:cursor-not-allowed"
               disabled={isLoading}
             >
               {isLoading ? 'Please wait...' : 'Start Playing'}
@@ -110,11 +104,11 @@ export default function Login({ onLogin }: LoginProps) {
           </form>
 
           <p className="mt-6 text-sm text-center text-white/80">
-            Sign in to track your progress on the leaderboard!
+            Sign in is required to store leaderboard data.
           </p>
         </div>
 
-        <div className="text-white/60 text-sm mt-2 text-center">
+        <div className="text-white text-sm mt-2 text-center">
           &copy; {new Date().getFullYear()} Guess The Painter. All rights reserved.
         </div>
       </div>
