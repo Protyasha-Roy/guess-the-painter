@@ -61,6 +61,13 @@ class SoundManager {
     }
   }
 
+  public stopAllSounds() {
+    Object.values(this.sounds).forEach(sound => {
+      sound.pause();
+      sound.currentTime = 0;
+    });
+  }
+
   public playSound(soundName: keyof typeof SOUND_EFFECTS) {
     if (this.muted) return;
     

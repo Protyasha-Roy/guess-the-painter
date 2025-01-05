@@ -182,6 +182,8 @@ export function Game() {
   };
 
   const handleLogout = () => {
+    soundManager.stopTickLoop();
+    soundManager.stopAllSounds();
     localStorage.removeItem('current-user');
     setIsLoggedIn(false);
     setUsername('');
