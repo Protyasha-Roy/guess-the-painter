@@ -203,8 +203,8 @@ export function Game() {
   }
 
   return (
-    <div className="min-h-screen bg-[#FFF5E4] p-4 md:p-8">
-      <div className="grid lg:grid-cols-[250px_1fr_250px] xl:grid-cols-[300px_1fr_300px] gap-4 md:gap-8 max-w-[1600px] mx-auto">
+    <div className="min-h-screen bg-[#FFF5E4] p-2 sm:p-4 md:p-8 overflow-x-hidden">
+      <div className="grid lg:grid-cols-[250px_1fr_250px] xl:grid-cols-[300px_1fr_300px] gap-2 sm:gap-4 md:gap-8 max-w-[1600px] mx-auto">
         {/* Left Column - Title and How to Play */}
         <div className="hidden lg:block lg:space-y-8">
           <div className="text-center">
@@ -231,7 +231,7 @@ export function Game() {
           </div>
 
           <div className="space-y-2">
-            <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center justify-between gap-2 sm:gap-4">
               <div>
                 created by <a href="https://protyasharoy.onrender.com" target="_blank" rel="noopener noreferrer" className="font-medium text-orange-500 hover:underline">Protyasha Roy</a>
               </div>
@@ -249,14 +249,14 @@ export function Game() {
         </div>
 
         {/* Mobile Title and Menu Toggle */}
-        <div className="lg:hidden space-y-3 mb-3">
+        <div className="lg:hidden space-y-2 sm:space-y-3 mb-2 sm:mb-3">
           <div className="text-center">
             <h1 className="text-xl md:text-3xl font-black uppercase">
               Guess The Painter
             </h1>
           </div>
           <div className="space-y-2">
-            <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center justify-between gap-2 sm:gap-4">
               <div>
                 created by <a href="https://protyasharoy.onrender.com" target="_blank" rel="noopener noreferrer" className="font-medium text-orange-500 hover:underline">Protyasha Roy</a>
               </div>
@@ -280,8 +280,8 @@ export function Game() {
         </div>
 
         {/* Main Game Area */}
-        <div className="space-y-4 md:space-y-8 order-1 lg:order-2">
-          <div className="border-[3px] border-black bg-white p-4 md:p-6 shadow-neo space-y-4 md:space-y-6">
+        <div className="space-y-2 sm:space-y-4 md:space-y-8 order-1 lg:order-2">
+          <div className="border-[3px] border-black bg-white p-3 sm:p-4 md:p-6 shadow-neo space-y-2 sm:space-y-4 md:space-y-6">
             <div className="relative min-h-[200px]">
               {(!painting || imageLoading) && (
                 <div className="absolute inset-0 flex items-center justify-center bg-white">
@@ -297,7 +297,7 @@ export function Game() {
               )}
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-2 sm:space-y-4">
               <div className="relative">
                 {feedback === 'wrong-guess' && timeLeft > 0 && !imageLoading && (
                   <div className="mb-2 text-center py-2 px-4 bg-orange-500 text-white border-[3px] border-black shadow-neo font-bold">
@@ -341,11 +341,11 @@ export function Game() {
       </div>
 
       {/* Mobile Menu */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50">
-        <div className={`bg-white border-t-[3px] border-black p-4 transition-all duration-300 ${
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 max-w-[100vw] overflow-x-hidden">
+        <div className={`bg-white border-t-[3px] border-black p-2 sm:p-4 transition-all duration-300 ${
           isDrawerOpen ? 'max-h-[80vh] opacity-100 overflow-y-auto' : 'max-h-0 opacity-0 overflow-hidden'
         }`}>
-          <div className="flex gap-2 mb-3">
+          <div className="flex gap-1 sm:gap-2 mb-3">
             <button 
               onClick={() => setMobileView('stats')}
               className={`flex-1 py-2 font-black text-base border-[3px] border-black transition-colors ${
@@ -403,6 +403,13 @@ export function Game() {
                 <li>Type your guess in the input field and press Enter</li>
                 <li>Get 10 points for each correct guess</li>
                 <li>Wrong guesses don't affect your score</li>
+              </ul>
+              <h2 className="text-lg md:text-xl font-black uppercase mb-3 border-b-[3px] border-black pb-2">Tips</h2>
+              <ul className="list-disc pl-4 space-y-1 text-sm">
+                <li>Most paintings are from old artists</li>
+                <li>Try to guess the artist's full name</li>
+                <li>Spelling must be correct (but not case sensitive)</li>
+                <li>Sometimes it might have short names instead of full form names. So, if you are confident about an artist, and it's saying wrong guess then keep trying with full name, or surname</li>
               </ul>
             </div>
           )}

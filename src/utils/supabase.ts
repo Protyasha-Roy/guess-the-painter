@@ -26,17 +26,6 @@ export interface DBStats {
   rank: number;
 }
 
-// Convert database stats to frontend stats
-function convertDBStatsToGameStats(dbStats: DBStats): GameStats {
-  return {
-    totalPaintings: dbStats.total_paintings,
-    totalGuesses: dbStats.total_guesses,
-    correctGuesses: dbStats.correct_guesses,
-    wrongGuesses: dbStats.wrong_guesses,
-    score: dbStats.score,
-    rank: dbStats.rank
-  };
-}
 
 // Encrypt password before storing
 const encryptPassword = (password: string): string => {
@@ -74,7 +63,7 @@ export async function loginUser(username: string, password: string): Promise<Use
       .eq('id', user.id);
 
     if (updateError) console.error('Error updating last login:', updateError);
-
+    
     return {
       id: user.id,
       username: user.username
@@ -197,8 +186,23 @@ export async function updateUserStats(userId: string, isCorrect: boolean): Promi
       .single();
 
     if (error) throw error;
+
+    if (!data) return null;
+
+    // Get user's rank based on score
+    const { count: rank } = await supabase
+      .from('user_stats')
+      .select('*', { count: 'exact', head: true })
+      .gt('score', data.score);
     
-    return data ? convertDBStatsToGameStats(data) : null;
+    return {
+      totalPaintings: data.total_paintings || 0,
+      totalGuesses: data.total_guesses || 0,
+      correctGuesses: data.correct_guesses || 0,
+      wrongGuesses: data.wrong_guesses || 0,
+      score: data.score || 0,
+      rank: (rank || 0) + 1 // Add 1 to get actual rank (1-based)
+    };
   } catch (error) {
     console.error('Error updating user stats:', error);
     return null;
@@ -225,8 +229,22 @@ export async function incrementTotalPaintings(userId: string): Promise<GameStats
       .single();
 
     if (error) throw error;
+    if (!data) return null;
+
+    // Get user's rank based on score
+    const { count: rank } = await supabase
+      .from('user_stats')
+      .select('*', { count: 'exact', head: true })
+      .gt('score', data.score);
     
-    return data ? convertDBStatsToGameStats(data) : null;
+    return {
+      totalPaintings: data.total_paintings || 0,
+      totalGuesses: data.total_guesses || 0,
+      correctGuesses: data.correct_guesses || 0,
+      wrongGuesses: data.wrong_guesses || 0,
+      score: data.score || 0,
+      rank: (rank || 0) + 1 // Add 1 to get actual rank (1-based)
+    };
   } catch (error) {
     console.error('Error incrementing total paintings:', error);
     return null;
