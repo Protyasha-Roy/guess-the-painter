@@ -18,6 +18,7 @@ export interface User {
 }
 
 export interface DBStats {
+  user_id: string;
   total_paintings: number;
   total_guesses: number;
   correct_guesses: number;
@@ -25,7 +26,6 @@ export interface DBStats {
   score: number;
   rank: number;
 }
-
 
 // Encrypt password before storing
 const encryptPassword = (password: string): string => {
@@ -47,7 +47,7 @@ export async function loginUser(username: string, password: string): Promise<Use
     // Get user by username
     const { data: user, error: userError } = await supabase
       .from('users')
-      .select('*')
+      .select('id, username, password_hash')
       .eq('username', username)
       .single();
 
@@ -56,14 +56,6 @@ export async function loginUser(username: string, password: string): Promise<Use
     // Verify password
     if (!verifyPassword(password, user.password_hash)) return null;
 
-    // Update last login
-    const { error: updateError } = await supabase
-      .from('users')
-      .update({ last_login: new Date().toISOString() })
-      .eq('id', user.id);
-
-    if (updateError) console.error('Error updating last login:', updateError);
-    
     return {
       id: user.id,
       username: user.username
@@ -92,7 +84,7 @@ export async function registerUser(username: string, password: string): Promise<
         username,
         password_hash: encryptPassword(password)
       }])
-      .select()
+      .select('id, username')
       .single();
 
     if (userError || !user) return null;
@@ -128,21 +120,15 @@ export async function registerUser(username: string, password: string): Promise<
 
 export async function getUserStats(userId: string): Promise<GameStats | null> {
   try {
-    // First get the user's stats
+    // Get the user's stats
     const { data: userStats, error: statsError } = await supabase
       .from('user_stats')
-      .select('*')
+      .select('user_id, total_paintings, total_guesses, correct_guesses, wrong_guesses, score, rank')
       .eq('user_id', userId)
       .single();
 
     if (statsError) throw statsError;
     if (!userStats) return null;
-
-    // Get user's rank based on score
-    const { count: rank } = await supabase
-      .from('user_stats')
-      .select('*', { count: 'exact', head: true })
-      .gt('score', userStats.score);
 
     return {
       totalPaintings: userStats.total_paintings || 0,
@@ -150,7 +136,7 @@ export async function getUserStats(userId: string): Promise<GameStats | null> {
       correctGuesses: userStats.correct_guesses || 0,
       wrongGuesses: userStats.wrong_guesses || 0,
       score: userStats.score || 0,
-      rank: (rank || 0) + 1 // Add 1 to get actual rank (1-based)
+      rank: userStats.rank || 1
     };
   } catch (error) {
     console.error('Error getting user stats:', error);
@@ -163,7 +149,7 @@ export async function updateUserStats(userId: string, isCorrect: boolean): Promi
     // First get current stats
     const { data: currentStats, error: fetchError } = await supabase
       .from('user_stats')
-      .select('*')
+      .select('user_id, total_paintings, total_guesses, correct_guesses, wrong_guesses, score, rank')
       .eq('user_id', userId)
       .single();
 
@@ -182,18 +168,11 @@ export async function updateUserStats(userId: string, isCorrect: boolean): Promi
       .from('user_stats')
       .update(newStats)
       .eq('user_id', userId)
-      .select()
+      .select('user_id, total_paintings, total_guesses, correct_guesses, wrong_guesses, score, rank')
       .single();
 
     if (error) throw error;
-
     if (!data) return null;
-
-    // Get user's rank based on score
-    const { count: rank } = await supabase
-      .from('user_stats')
-      .select('*', { count: 'exact', head: true })
-      .gt('score', data.score);
     
     return {
       totalPaintings: data.total_paintings || 0,
@@ -201,7 +180,7 @@ export async function updateUserStats(userId: string, isCorrect: boolean): Promi
       correctGuesses: data.correct_guesses || 0,
       wrongGuesses: data.wrong_guesses || 0,
       score: data.score || 0,
-      rank: (rank || 0) + 1 // Add 1 to get actual rank (1-based)
+      rank: data.rank || 1
     };
   } catch (error) {
     console.error('Error updating user stats:', error);
@@ -214,7 +193,7 @@ export async function incrementTotalPaintings(userId: string): Promise<GameStats
     // First get current stats
     const { data: currentStats, error: fetchError } = await supabase
       .from('user_stats')
-      .select('*')
+      .select('user_id, total_paintings, total_guesses, correct_guesses, wrong_guesses, score, rank')
       .eq('user_id', userId)
       .single();
 
@@ -225,17 +204,11 @@ export async function incrementTotalPaintings(userId: string): Promise<GameStats
       .from('user_stats')
       .update({ total_paintings: currentStats.total_paintings + 1 })
       .eq('user_id', userId)
-      .select()
+      .select('user_id, total_paintings, total_guesses, correct_guesses, wrong_guesses, score, rank')
       .single();
 
     if (error) throw error;
     if (!data) return null;
-
-    // Get user's rank based on score
-    const { count: rank } = await supabase
-      .from('user_stats')
-      .select('*', { count: 'exact', head: true })
-      .gt('score', data.score);
     
     return {
       totalPaintings: data.total_paintings || 0,
@@ -243,7 +216,7 @@ export async function incrementTotalPaintings(userId: string): Promise<GameStats
       correctGuesses: data.correct_guesses || 0,
       wrongGuesses: data.wrong_guesses || 0,
       score: data.score || 0,
-      rank: (rank || 0) + 1 // Add 1 to get actual rank (1-based)
+      rank: data.rank || 1
     };
   } catch (error) {
     console.error('Error incrementing total paintings:', error);
@@ -253,7 +226,7 @@ export async function incrementTotalPaintings(userId: string): Promise<GameStats
 
 export async function getLeaderboard() {
   try {
-    // First get top 10 stats with user IDs
+    // Get top 10 stats with user IDs
     const { data: statsData, error: statsError } = await supabase
       .from('user_stats')
       .select(`
@@ -262,9 +235,10 @@ export async function getLeaderboard() {
         total_paintings,
         total_guesses,
         correct_guesses,
-        wrong_guesses
+        wrong_guesses,
+        rank
       `)
-      .order('score', { ascending: false })
+      .order('rank', { ascending: true })
       .limit(10);
 
     if (statsError) throw statsError;
@@ -283,15 +257,18 @@ export async function getLeaderboard() {
     // Create a map of user_id to username
     const usernameMap = new Map(usersData.map(user => [user.id, user.username]));
 
-    // Combine the data with ranks
-    return statsData.map((stat, index) => ({
+    // Calculate efficiency stats for display
+    return statsData.map(stat => ({
       username: usernameMap.get(stat.user_id) || 'Unknown User',
       score: stat.score,
       total_paintings: stat.total_paintings,
       total_guesses: stat.total_guesses,
       correct_guesses: stat.correct_guesses,
       wrong_guesses: stat.wrong_guesses,
-      rank: index + 1
+      rank: stat.rank || 1,
+      efficiency: stat.total_guesses > 0 
+        ? Math.round((stat.score / stat.total_guesses) * 10) / 10 
+        : 0
     }));
   } catch (error) {
     console.error('Error fetching leaderboard:', error);

@@ -32,21 +32,33 @@ export function Game() {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [mobileView, setMobileView] = useState('stats');
   const [username, setUsername] = useState('');
+  const [userId, setUserId] = useState<string | null>(null);
 
   // Check if user is logged in
   useEffect(() => {
     const currentUser = localStorage.getItem('current-user');
     if (currentUser) {
-      const user = JSON.parse(currentUser);
-      setIsLoggedIn(true);
-      setUsername(user.username);
-      // Load user stats and a new painting
-      getUserStats(user.id).then(userStats => {
-        if (userStats) {
-          setStats(userStats);
+      try {
+        const user = JSON.parse(currentUser);
+        if (user && user.id && user.username) {
+          setIsLoggedIn(true);
+          setUsername(user.username);
+          setUserId(user.id);
+          // Load user stats
+          getUserStats(user.id).then(userStats => {
+            if (userStats) {
+              setStats(userStats);
+            }
+          });
+          loadNewPainting();
+        } else {
+          // Invalid user data, clear it
+          localStorage.removeItem('current-user');
         }
-      });
-      loadNewPainting(); // Load a new painting when user signs in
+      } catch (error) {
+        console.error('Error parsing user data:', error);
+        localStorage.removeItem('current-user');
+      }
     }
   }, []);
 
@@ -57,7 +69,6 @@ export function Game() {
     setTimeLeft(30);
     
     try {
-      // Set painting to null first to trigger loading state
       setPainting(null);
       const newPainting = await fetchRandomPainting();
       setPainting(newPainting);
@@ -66,11 +77,10 @@ export function Game() {
         artist: newPainting.artist,
         title: newPainting.title
       });
-      // Increment total paintings in stats
-      const currentUser = localStorage.getItem('current-user');
-      if (currentUser) {
-        const user = JSON.parse(currentUser);
-        const newStats = await incrementTotalPaintings(user.id);
+
+      // Only increment stats if user is logged in
+      if (userId) {
+        const newStats = await incrementTotalPaintings(userId);
         if (newStats) {
           setStats(newStats);
         }
@@ -80,14 +90,24 @@ export function Game() {
     }
   };
 
+  useEffect(() => {
+    loadNewPainting();
+  }, []);
+
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (feedback === 'wrong-guess') {
+      timer = setTimeout(() => {
+        setFeedback(null);
+      }, 2000);
+    }
+    return () => clearTimeout(timer);
+  }, [feedback]);
+
   const handleImageLoad = () => {
     setImageLoading(false);
     setIsTimerActive(true);
   };
-
-  useEffect(() => {
-    loadNewPainting();
-  }, []);
 
   useEffect(() => {
     let timer: NodeJS.Timeout;
@@ -108,39 +128,32 @@ export function Game() {
         artist: painting.artist,
         title: painting.title
       });
-      const currentUser = localStorage.getItem('current-user');
-      if (currentUser) {
-        const user = JSON.parse(currentUser);
-        updateUserStats(user.id, false).then(newStats => {
+      if (userId) {
+        updateUserStats(userId, false).then(newStats => {
           if (newStats) {
             setStats(newStats);
           }
         });
       }
     }
-  }, [painting]);
+  }, [painting, userId]);
 
   const handleGuess = async () => {
-    if (!painting || !isTimerActive || !guess.trim()) return;
-    
+    if (!painting || !isTimerActive || !guess.trim() || !userId) return;
+
     const isCorrect = guess.toLowerCase() === painting.artist.toLowerCase();
-    const currentUser = localStorage.getItem('current-user');
     
     trackEvent('make_guess', {
       correct: isCorrect,
       artist: painting.artist,
-      timeLeft: timeLeft,
       guessText: guess.toLowerCase()
     });
-    
-    if (currentUser) {
-      const user = JSON.parse(currentUser);
-      const newStats = await updateUserStats(user.id, isCorrect);
-      if (newStats) {
-        setStats(newStats);
-      }
+
+    const newStats = await updateUserStats(userId, isCorrect);
+    if (newStats) {
+      setStats(newStats);
     }
-    
+
     if (isCorrect) {
       setFeedback('correct');
       setIsTimerActive(false);
@@ -148,45 +161,36 @@ export function Game() {
       soundManager.playSound('CORRECT');
     } else {
       setFeedback('wrong-guess');
-      setGuess('');
       soundManager.playSound('WRONG');
-      // Reset feedback after 2 seconds
-      setTimeout(() => setFeedback(null), 2000);
     }
+
+    setGuess('');
   };
 
-  const handleLogin = async (userData: { id: string; username: string }) => {
-    try {
-      localStorage.setItem('current-user', JSON.stringify(userData));
-      setIsLoggedIn(true);
-      setUsername(userData.username);
-      
-      trackEvent('user_login', {
-        username: userData.username
-      });
-      
-      const stats = await getUserStats(userData.id);
-      if (stats) {
-        setStats(stats);
-        trackEvent('load_stats', {
-          totalGuesses: stats.totalGuesses,
-          correctGuesses: stats.correctGuesses,
-          score: stats.score
-        });
-      }
-      
-      loadNewPainting(); // Load a new painting when user signs in
-    } catch (error) {
-      console.error('Error logging in:', error);
+  const handleLogin = (user: { id: string; username: string }) => {
+    if (!user || !user.id || !user.username) {
+      console.error('Invalid user data received');
+      return;
     }
+
+    setIsLoggedIn(true);
+    setUsername(user.username);
+    setUserId(user.id);
+    localStorage.setItem('current-user', JSON.stringify(user));
+
+    // Load user stats
+    getUserStats(user.id).then(userStats => {
+      if (userStats) {
+        setStats(userStats);
+      }
+    });
+    loadNewPainting();
   };
 
   const handleLogout = () => {
-    soundManager.stopTickLoop();
-    soundManager.stopAllSounds();
-    localStorage.removeItem('current-user');
     setIsLoggedIn(false);
     setUsername('');
+    setUserId(null);
     setStats({
       totalPaintings: 0,
       totalGuesses: 0,
@@ -195,7 +199,8 @@ export function Game() {
       score: 0,
       rank: 0
     });
-    trackEvent('user_logout');
+    localStorage.removeItem('current-user');
+    soundManager.stopAllSounds();
   };
 
   if (!isLoggedIn) {
@@ -203,8 +208,8 @@ export function Game() {
   }
 
   return (
-    <div className="min-h-screen bg-[#FFF5E4] p-2 sm:p-4 md:p-8 overflow-x-hidden">
-      <div className="grid lg:grid-cols-[250px_1fr_250px] xl:grid-cols-[300px_1fr_300px] gap-2 sm:gap-4 md:gap-8 max-w-[1600px] mx-auto">
+    <div className="min-h-screen bg-[#FFF5E4] m-4 sm:p-4 md:p-8 overflow-x-hidden">
+      <div className="grid lg:grid-cols-[250px_1fr_250px] xl:grid-cols-[300px_1fr_300px] gap-2 sm:gap-4 md:gap-8 max-w-[1600px] mx-auto p-2">
         {/* Left Column - Title and How to Play */}
         <div className="hidden lg:block lg:space-y-8">
           <div className="text-center">
@@ -350,7 +355,7 @@ export function Game() {
               onClick={() => setMobileView('stats')}
               className={`flex-1 py-2 font-black text-base border-[3px] border-black transition-colors ${
                 mobileView === 'stats' 
-                ? 'bg-[#93FFD8]' 
+                ? 'bg-orange-500' 
                 : 'bg-white hover:bg-gray-100'
               }`}
             >
@@ -360,7 +365,7 @@ export function Game() {
               onClick={() => setMobileView('leaderboard')}
               className={`flex-1 py-2 font-black text-base border-[3px] border-black transition-colors ${
                 mobileView === 'leaderboard' 
-                ? 'bg-[#93FFD8]' 
+                ? 'bg-orange-500' 
                 : 'bg-white hover:bg-gray-100'
               }`}
             >
@@ -370,7 +375,7 @@ export function Game() {
               onClick={() => setMobileView('rules')}
               className={`flex-1 py-2 font-black text-base border-[3px] border-black transition-colors ${
                 mobileView === 'rules' 
-                ? 'bg-[#93FFD8]' 
+                ? 'bg-orange-500' 
                 : 'bg-white hover:bg-gray-100'
               }`}
             >

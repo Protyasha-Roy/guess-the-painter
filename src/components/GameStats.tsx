@@ -51,12 +51,3 @@ export function GameStats({ stats, compact = false }: GameStatsProps) {
         </div>
     );
 }
-
-// function StatBox({ label, value, color }: { label: string; value: number; color: string }) {
-//     return (
-//         <div className={`${color} border-[3px] border-black p-2 md:p-3 text-center shadow-neo-sm`}>
-//             <div className="text-xl md:text-2xl font-black">{value}</div>
-//             <div className="text-xs md:text-sm font-bold uppercase">{label}</div>
-//         </div>
-//     );
-// }

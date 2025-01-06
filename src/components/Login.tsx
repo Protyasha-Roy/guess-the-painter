@@ -9,6 +9,7 @@ interface LoginProps {
 export default function Login({ onLogin }: LoginProps) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [isRegistering, setIsRegistering] = useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
@@ -18,28 +19,24 @@ export default function Login({ onLogin }: LoginProps) {
     setIsLoading(true);
 
     if (!username.trim() || !password.trim()) {
-      setError('Please fill in all fields');
+      setError('Please enter both username and password');
       setIsLoading(false);
       return;
     }
 
     try {
-      // Try to login first
-      let user = await loginUser(username, password);
-      
-      if (!user) {
-        // If login fails, try to register
-        user = await registerUser(username, password);
-      }
+      const user = isRegistering 
+        ? await registerUser(username.trim(), password)
+        : await loginUser(username.trim(), password);
 
-      if (user) {
+      if (user && user.id && user.username) {
         onLogin(user);
       } else {
-        setError('Failed to login or register');
+        setError(isRegistering ? 'Username already taken' : 'Invalid username or password');
       }
-    } catch (err) {
-      setError('An error occurred');
-      console.error('Login error:', err);
+    } catch (error) {
+      console.error('Auth error:', error);
+      setError('An error occurred. Please try again.');
     }
 
     setIsLoading(false);
@@ -99,7 +96,14 @@ export default function Login({ onLogin }: LoginProps) {
               className="w-full bg-orange-600/40 border border-white/30 backdrop-blur-sm text-white py-3 rounded-lg font-medium hover:bg-orange-600/50 transition-all focus:outline-none focus:ring-2 focus:ring-white/50 disabled:opacity-50 disabled:cursor-not-allowed"
               disabled={isLoading}
             >
-              {isLoading ? 'Please wait...' : 'Start Playing'}
+              {isLoading ? 'Please wait...' : isRegistering ? 'Register' : 'Login'}
+            </button>
+            <button
+              type="button"
+              className="text-white/80 hover:text-white text-sm underline transition-colors"
+              onClick={() => setIsRegistering(!isRegistering)}
+            >
+              {isRegistering ? 'Already have an account? Login' : 'Don\'t have an account? Register'}
             </button>
           </form>
 

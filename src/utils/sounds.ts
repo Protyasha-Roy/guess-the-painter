@@ -66,6 +66,7 @@ class SoundManager {
       sound.pause();
       sound.currentTime = 0;
     });
+    this.tickLoop = null;
   }
 
   public playSound(soundName: keyof typeof SOUND_EFFECTS) {
@@ -85,11 +86,15 @@ class SoundManager {
     }
   }
 
-  public toggleMute() {
-    this.muted = !this.muted;
-    if (this.muted && this.tickLoop) {
-      this.stopTickLoop();
+  public setMuted(muted: boolean) {
+    this.muted = muted;
+    if (muted) {
+      this.stopAllSounds();
     }
+  }
+
+  public toggleMute() {
+    this.setMuted(!this.muted);
     return this.muted;
   }
   
