@@ -11,7 +11,7 @@ export function GameStats({ stats, compact = false }: GameStatsProps) {
             {stats.rank && (
                 <div className="flex justify-between items-center">
                     <span className="font-bold text-gray-600">Rank:</span>
-                    <span className="text-black font-black">#{stats.rank}</span>
+                    <span className="text-black font-black">#{stats.rank || 'N/A'}</span>
                 </div>
             )}
             <div className="flex justify-between items-center">

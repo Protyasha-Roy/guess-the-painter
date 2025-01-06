@@ -13,6 +13,12 @@ export default function Login({ onLogin }: LoginProps) {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
+  const handlePlayAsGuest = () => {
+    const guestUser = { id: 'guest', username: 'Guest' };
+    localStorage.setItem('current-user', JSON.stringify(guestUser));
+    onLogin(guestUser);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -100,11 +106,20 @@ export default function Login({ onLogin }: LoginProps) {
 
             <button
               type="submit"
-              className="w-full bg-orange-600/40 border border-white/30 backdrop-blur-sm text-white py-3 rounded-lg font-medium hover:bg-orange-600/50 transition-all focus:outline-none focus:ring-2 focus:ring-white/50 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full bg-orange-600/40 border border-white/30 backdrop-blur-sm text-white py-3 rounded-lg font-medium hover:bg-orange-600/50 transition-all focus:outline-none focus:ring-2 focus:ring-white/50 disabled:opacity-50 disabled:cursor-not-allowed mb-3"
               disabled={isLoading}
             >
               {isLoading ? 'Please wait...' : isRegistering ? 'Register' : 'Login'}
             </button>
+
+            <button
+              type="button"
+              onClick={handlePlayAsGuest}
+              className="w-full bg-white/10 border border-white/30 backdrop-blur-sm text-white py-3 rounded-lg font-medium hover:bg-white/20 transition-all focus:outline-none focus:ring-2 focus:ring-white/50 mb-3"
+            >
+              Play as Guest
+            </button>
+
             <button
               type="button"
               className="text-white/80 hover:text-white text-sm underline transition-colors"
@@ -112,6 +127,12 @@ export default function Login({ onLogin }: LoginProps) {
             >
               {isRegistering ? 'Already have an account? Login' : 'Don\'t have an account? Register'}
             </button>
+
+            <p className="mt-4 text-sm text-white/60 text-center">
+              Note: Guest stats are saved locally and will be lost if browser data is cleared.
+              <br />
+              Register to compete on the leaderboard and save stats permanently!
+            </p>
           </form>
 
           <p className="mt-6 text-sm text-center text-white/80">

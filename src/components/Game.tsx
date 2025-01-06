@@ -44,20 +44,30 @@ export function Game() {
           setIsLoggedIn(true);
           setUsername(user.username);
           setUserId(user.id);
-          // Load user stats
-          getUserStats(user.id).then(userStats => {
-            if (userStats) {
-              setStats(userStats);
-            }
-          });
+          
+          if (user.id === 'guest') {
+            // Load guest stats from localStorage
+            const savedStats = localStorage.getItem('guest_stats');
+            setStats(savedStats ? JSON.parse(savedStats) : {
+              totalPaintings: 0,
+              totalGuesses: 0,
+              correctGuesses: 0,
+              wrongGuesses: 0,
+              score: 0,
+              rank: 0
+            });
+          } else {
+            // Load registered user stats from Supabase
+            getUserStats(user.id).then(userStats => {
+              if (userStats) {
+                setStats(userStats);
+              }
+            });
+          }
           loadNewPainting();
-        } else {
-          // Invalid user data, clear it
-          localStorage.removeItem('current-user');
         }
       } catch (error) {
         console.error('Error parsing user data:', error);
-        localStorage.removeItem('current-user');
       }
     }
   }, []);
@@ -99,10 +109,20 @@ export function Game() {
   const handleImageLoad = () => {
     setImageLoading(false);
     setIsTimerActive(true);
-    if (userId) {
-      incrementTotalPaintings(userId).then(newStats => {
-        if (newStats) {
-          setStats(newStats);
+    
+    if (userId === 'guest') {
+      // Update guest stats in localStorage
+      const newStats = {
+        ...stats,
+        totalPaintings: stats.totalPaintings + 1
+      };
+      setStats(newStats);
+      localStorage.setItem('guest_stats', JSON.stringify(newStats));
+    } else if (userId) {
+      // Update registered user stats in Supabase
+      incrementTotalPaintings(userId).then(updatedStats => {
+        if (updatedStats) {
+          setStats(updatedStats);
         }
       });
     }
@@ -138,7 +158,7 @@ export function Game() {
   }, [painting, userId]);
 
   const handleGuess = async () => {
-    if (!painting || !isTimerActive || !guess.trim() || !userId) return;
+    if (!painting || !isTimerActive || !guess.trim()) return;
 
     const isCorrect = guess.toLowerCase() === painting.artist.toLowerCase();
     
@@ -148,9 +168,23 @@ export function Game() {
       guessText: guess.toLowerCase()
     });
 
-    const newStats = await updateUserStats(userId, isCorrect);
-    if (newStats) {
+    if (userId === 'guest') {
+      // Update guest stats in localStorage
+      const newStats = {
+        ...stats,
+        totalGuesses: stats.totalGuesses + 1,
+        correctGuesses: stats.correctGuesses + (isCorrect ? 1 : 0),
+        wrongGuesses: stats.wrongGuesses + (isCorrect ? 0 : 1),
+        score: stats.score + (isCorrect ? 10 : 0)
+      };
       setStats(newStats);
+      localStorage.setItem('guest_stats', JSON.stringify(newStats));
+    } else if (userId) {
+      // Update registered user stats in Supabase
+      const updatedStats = await updateUserStats(userId, isCorrect);
+      if (updatedStats) {
+        setStats(updatedStats);
+      }
     }
 
     if (isCorrect) {
@@ -177,12 +211,26 @@ export function Game() {
     setUserId(user.id);
     localStorage.setItem('current-user', JSON.stringify(user));
 
-    // Load user stats
-    getUserStats(user.id).then(userStats => {
-      if (userStats) {
-        setStats(userStats);
-      }
-    });
+    if (user.id === 'guest') {
+      // Initialize or load guest stats from localStorage
+      const savedStats = localStorage.getItem('guest_stats');
+      setStats(savedStats ? JSON.parse(savedStats) : {
+        totalPaintings: 0,
+        totalGuesses: 0,
+        correctGuesses: 0,
+        wrongGuesses: 0,
+        score: 0,
+        rank: 0
+      });
+    } else {
+      // Load registered user stats from Supabase
+      getUserStats(user.id).then(userStats => {
+        if (userStats) {
+          setStats(userStats);
+        }
+      });
+    }
+    
     loadNewPainting();
   };
 
