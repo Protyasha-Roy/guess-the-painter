@@ -207,8 +207,8 @@ export function Game() {
   }
 
   return (
-    <div className="min-h-screen bg-[#FFF5E4] m-4 sm:p-4 md:p-8 overflow-x-hidden">
-      <div className="grid lg:grid-cols-[250px_1fr_250px] xl:grid-cols-[300px_1fr_300px] gap-2 sm:gap-4 md:gap-8 max-w-[1600px] mx-auto p-2">
+    <div className="min-h-screen bg-[#FFF5E4] p-2 sm:p-4 md:p-8">
+      <div className="grid grid-cols-1 lg:grid-cols-[250px_1fr_250px] xl:grid-cols-[300px_1fr_300px] gap-2 sm:gap-4 md:gap-8 max-w-[1600px] mx-auto">
         {/* Left Column - Title and How to Play */}
         <div className="hidden lg:block lg:space-y-8">
           <div className="text-center">
@@ -345,9 +345,9 @@ export function Game() {
       </div>
 
       {/* Mobile Menu */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 max-w-[100vw] overflow-x-hidden">
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50">
         <div className={`bg-white border-t-[3px] border-black p-2 sm:p-4 transition-all duration-300 ${
-          isDrawerOpen ? 'max-h-[80vh] opacity-100 overflow-y-auto' : 'max-h-0 opacity-0 overflow-hidden'
+          isDrawerOpen ? 'translate-y-0' : 'translate-y-full'
         }`}>
           <div className="flex gap-1 sm:gap-2 mb-3">
             <button 
