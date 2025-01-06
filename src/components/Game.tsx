@@ -207,8 +207,8 @@ export function Game() {
   }
 
   return (
-    <div className="min-h-screen bg-[#FFF5E4] p-2 sm:p-4 md:p-8">
-      <div className="grid grid-cols-1 lg:grid-cols-[250px_1fr_250px] xl:grid-cols-[300px_1fr_300px] gap-2 sm:gap-4 md:gap-8 max-w-[1600px] mx-auto">
+    <div className="min-h-screen bg-[#FFF5E4] p-2 sm:p-4 md:p-8 overflow-x-hidden">
+      <div className="grid lg:grid-cols-[250px_1fr_250px] xl:grid-cols-[300px_1fr_300px] gap-2 sm:gap-4 md:gap-8 max-w-[1600px] mx-auto">
         {/* Left Column - Title and How to Play */}
         <div className="hidden lg:block lg:space-y-8">
           <div className="text-center">
@@ -258,22 +258,26 @@ export function Game() {
             <h1 className="text-xl md:text-3xl font-black uppercase">
               Guess The Painter
             </h1>
-          </div>
-          <div className="space-y-2">
-            <div className="flex items-center justify-between gap-2 sm:gap-4">
-              <div>
-                created by <a href="https://protyasharoy.onrender.com" target="_blank" rel="noopener noreferrer" className="font-medium text-orange-500 hover:underline">Protyasha Roy</a>
-              </div>
-              <button
-                onClick={handleLogout}
-                className="bg-white border-[3px] border-black px-4 py-1 font-bold text-sm shadow-neo hover:bg-gray-100 transition-colors"
+            <p className="text-sm text-gray-500">
+              created by{' '}
+              <a
+                href="https://protyasharoy.onrender.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-medium text-orange-500 hover:underline"
               >
-                Logout
-              </button>
-            </div>
-            <div className="text-sm text-gray-500">
-              &copy; {new Date().getFullYear()} Guess The Painter. All rights reserved.
-            </div>
+                Protyasha Roy
+              </a>
+            </p>
+          </div>
+          <div className="flex items-center justify-between gap-2">
+            <SoundToggle />
+            <button
+              onClick={handleLogout}
+              className="bg-white border-[3px] border-black px-4 py-1 font-bold text-sm shadow-neo hover:bg-gray-100 transition-colors"
+            >
+              Logout
+            </button>
           </div>
           <button
             onClick={() => setIsDrawerOpen(!isDrawerOpen)}
@@ -284,7 +288,7 @@ export function Game() {
         </div>
 
         {/* Main Game Area */}
-        <div className="space-y-2 sm:space-y-4 md:space-y-8 order-1 lg:order-2">
+        <div className="space-y-2 sm:space-y-4 md:space-y-8 order-1 lg:order-2 pb-[100px] lg:pb-0">
           <div className="border-[3px] border-black bg-white p-3 sm:p-4 md:p-6 shadow-neo space-y-2 sm:space-y-4 md:space-y-6">
             <div className="relative min-h-[200px]">
               {(!painting || imageLoading) && (
@@ -347,7 +351,7 @@ export function Game() {
       {/* Mobile Menu */}
       <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50">
         <div className={`bg-white border-t-[3px] border-black p-2 sm:p-4 transition-all duration-300 ${
-          isDrawerOpen ? 'translate-y-0' : 'translate-y-full'
+          isDrawerOpen ? 'max-h-[80vh] opacity-100 overflow-y-auto' : 'max-h-0 opacity-0 overflow-hidden'
         }`}>
           <div className="flex gap-1 sm:gap-2 mb-3">
             <button 
