@@ -77,14 +77,6 @@ export function Game() {
         artist: newPainting.artist,
         title: newPainting.title
       });
-
-      // Only increment stats if user is logged in
-      if (userId) {
-        const newStats = await incrementTotalPaintings(userId);
-        if (newStats) {
-          setStats(newStats);
-        }
-      }
     } catch (error) {
       console.error('Error loading painting:', error);
     }
@@ -107,6 +99,13 @@ export function Game() {
   const handleImageLoad = () => {
     setImageLoading(false);
     setIsTimerActive(true);
+    if (userId) {
+      incrementTotalPaintings(userId).then(newStats => {
+        if (newStats) {
+          setStats(newStats);
+        }
+      });
+    }
   };
 
   useEffect(() => {
