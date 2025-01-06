@@ -117,7 +117,7 @@ export default function Login({ onLogin }: LoginProps) {
               onClick={handlePlayAsGuest}
               className="w-full bg-white/10 border border-white/30 backdrop-blur-sm text-white py-3 rounded-lg font-medium hover:bg-white/20 transition-all focus:outline-none focus:ring-2 focus:ring-white/50 mb-3"
             >
-              Play as Guest
+              Play without account
             </button>
 
             <button
@@ -127,16 +127,10 @@ export default function Login({ onLogin }: LoginProps) {
             >
               {isRegistering ? 'Already have an account? Login' : 'Don\'t have an account? Register'}
             </button>
-
-            <p className="mt-4 text-sm text-white/60 text-center">
-              Note: Guest stats are saved locally and will be lost if browser data is cleared.
-              <br />
-              Register to compete on the leaderboard and save stats permanently!
-            </p>
           </form>
 
           <p className="mt-6 text-sm text-center text-white/80">
-            Sign in is required to store leaderboard data.
+              Note: Guest stats are saved locally and will be lost if browser data is cleared. Login to compete on the leaderboard and save stats permanently!
           </p>
         </div>
 
